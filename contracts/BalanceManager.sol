@@ -7,12 +7,13 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeab
 import "@openzeppelin/contracts-upgradeable/utils/cryptography/ECDSAUpgradeable.sol";
 
 contract BalanceManager is Initializable, OwnableUpgradeable {
-  using ECDSAUpgradeable for bytes32;
   using SafeERC20Upgradeable for IERC20Upgradeable;
+  using ECDSAUpgradeable for bytes32;
 
   event NFTLDeposited(address indexed by, uint256 amount);
   event MaintainerUpdated(address indexed by, address indexed oldMaintainer, address indexed newMaintainer);
   event NFTLWithdrew(address indexed by, address indexed beneficiary, uint256 amount);
+  event NFTLWithdrewByDAO(address indexed by, address indexed beneficiary, uint256 amount);
 
   /// @dev NFTL token address
   address public nftl;
@@ -79,7 +80,7 @@ contract BalanceManager is Initializable, OwnableUpgradeable {
 
     // check the signer
     bytes32 data = keccak256(abi.encodePacked(_beneficiary, _amount, _nonce));
-    require(data.toEthSignedMessageHash().recover(_signature) == maintainer, "wrog signer");
+    require(data.toEthSignedMessageHash().recover(_signature) == maintainer, "wrong signer");
 
     // check if total withdrawal amount is not greater than total deposit one
     userWithdrawals[_beneficiary] += _amount;
@@ -100,5 +101,17 @@ contract BalanceManager is Initializable, OwnableUpgradeable {
     emit MaintainerUpdated(msg.sender, maintainer, _maintainer);
 
     maintainer = _maintainer;
+  }
+
+  /**
+   * @notice Allow DAO to withdraw NFTL token from the contract
+   * @dev Only owner
+   * @param _beneficiary Beneficiary address
+   * @param _amount NFTL token amount to withdraw
+   */
+  function withdrawByDAO(address _beneficiary, uint256 _amount) external onlyOwner {
+    IERC20Upgradeable(nftl).safeTransfer(_beneficiary, _amount);
+
+    emit NFTLWithdrewByDAO(msg.sender, _beneficiary, _amount);
   }
 }
