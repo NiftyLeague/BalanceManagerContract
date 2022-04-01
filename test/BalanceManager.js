@@ -43,19 +43,84 @@ describe("BalanceManager", function () {
   });
 
   describe("withdraw", function () {
-    it("should be able to withdraw NFTL tokens", async () => {
+    beforeEach(async () => {
       // deposit
       await nftl.connect(alice).approve(balanceManager.address, DEPOSIT_AMOUNT);
       await balanceManager.connect(alice).deposit(DEPOSIT_AMOUNT);
 
+      await nftl.connect(bob).approve(balanceManager.address, DEPOSIT_AMOUNT);
+      await balanceManager.connect(bob).deposit(DEPOSIT_AMOUNT);
+    });
+
+    it("should be able to withdraw NFTL tokens", async () => {
       // withdraw
-      let nonceForAlice = 0;
+      let nonceForAlice = await balanceManager.nonce(alice.address);
       let signatureForAlice = await getSignature(maintainer, alice.address, WITHDRAW_AMOUNT, nonceForAlice);
       await balanceManager
         .connect(maintainer)
         .withdraw(alice.address, WITHDRAW_AMOUNT, nonceForAlice, signatureForAlice);
 
       expect(await nftl.balanceOf(alice.address)).to.equal(INIT_BALANCE - DEPOSIT_AMOUNT + WITHDRAW_AMOUNT);
+    });
+
+    it("revert if msg.sender is not a maintainer", async () => {
+      // withdraw
+      let nonceForAlice = await balanceManager.nonce(alice.address);
+      let signatureForAlice = await getSignature(maintainer, alice.address, WITHDRAW_AMOUNT, nonceForAlice);
+
+      await expect(
+        balanceManager.connect(alice).withdraw(alice.address, WITHDRAW_AMOUNT, nonceForAlice, signatureForAlice),
+      ).to.be.revertedWith("only maintainer");
+    });
+
+    it("revert if the nonce is invalid", async () => {
+      // withdraw
+      let nonceForAlice = await balanceManager.nonce(alice.address);
+      let signatureForAlice = await getSignature(maintainer, alice.address, WITHDRAW_AMOUNT, nonceForAlice + 1);
+
+      await expect(
+        balanceManager
+          .connect(maintainer)
+          .withdraw(alice.address, WITHDRAW_AMOUNT, nonceForAlice + 1, signatureForAlice),
+      ).to.be.revertedWith("mismatched nonce");
+    });
+
+    it("revert if the signature is used twice", async () => {
+      // withdraw
+      let nonceForAlice = await balanceManager.nonce(alice.address);
+      let signatureForAlice = await getSignature(maintainer, alice.address, WITHDRAW_AMOUNT, nonceForAlice);
+      await balanceManager
+        .connect(maintainer)
+        .withdraw(alice.address, WITHDRAW_AMOUNT, nonceForAlice, signatureForAlice);
+
+      // witdraw again with the same signature
+      await expect(
+        balanceManager
+          .connect(maintainer)
+          .withdraw(alice.address, WITHDRAW_AMOUNT, nonceForAlice + 1, signatureForAlice),
+      ).to.be.revertedWith("used signature");
+    });
+
+    it("revert if the amount is wrong", async () => {
+      // withdraw
+      let nonceForAlice = await balanceManager.nonce(alice.address);
+      let signatureForAlice = await getSignature(maintainer, alice.address, WITHDRAW_AMOUNT, nonceForAlice);
+
+      await expect(
+        balanceManager.connect(maintainer).withdraw(bob.address, WITHDRAW_AMOUNT, nonceForAlice, signatureForAlice),
+      ).to.be.revertedWith("wrong signer");
+    });
+
+    it("revert if the amount is wrong", async () => {
+      // withdraw
+      let nonceForAlice = await balanceManager.nonce(alice.address);
+      let signatureForAlice = await getSignature(maintainer, alice.address, WITHDRAW_AMOUNT, nonceForAlice);
+
+      await expect(
+        balanceManager
+          .connect(maintainer)
+          .withdraw(alice.address, WITHDRAW_AMOUNT + 1, nonceForAlice, signatureForAlice),
+      ).to.be.revertedWith("wrong signer");
     });
   });
 });
