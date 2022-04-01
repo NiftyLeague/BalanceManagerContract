@@ -12,8 +12,8 @@ contract BalanceManager is Initializable, OwnableUpgradeable {
 
   event NFTLDeposited(address indexed by, uint256 amount);
   event MaintainerUpdated(address indexed by, address indexed oldMaintainer, address indexed newMaintainer);
-  event NFTLWithdrew(address indexed by, address indexed beneficiary, uint256 amount);
-  event NFTLWithdrewByDAO(address indexed by, address indexed beneficiary, uint256 amount);
+  event NFTLWithdrawn(address indexed by, address indexed beneficiary, uint256 amount);
+  event NFTLWithdrawnByDAO(address indexed by, address indexed beneficiary, uint256 amount);
 
   /// @dev NFTL token address
   address public nftl;
@@ -89,7 +89,7 @@ contract BalanceManager is Initializable, OwnableUpgradeable {
     // transfer tokens to the user
     IERC20Upgradeable(nftl).safeTransfer(_beneficiary, _amount);
 
-    emit NFTLWithdrew(maintainer, _beneficiary, _amount);
+    emit NFTLWithdrawn(maintainer, _beneficiary, _amount);
   }
 
   /**
@@ -112,6 +112,6 @@ contract BalanceManager is Initializable, OwnableUpgradeable {
   function withdrawByDAO(address _beneficiary, uint256 _amount) external onlyOwner {
     IERC20Upgradeable(nftl).safeTransfer(_beneficiary, _amount);
 
-    emit NFTLWithdrewByDAO(msg.sender, _beneficiary, _amount);
+    emit NFTLWithdrawnByDAO(msg.sender, _beneficiary, _amount);
   }
 }
