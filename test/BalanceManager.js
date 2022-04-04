@@ -15,7 +15,7 @@ describe("BalanceManager", function () {
   const WITHDRAW_AMOUNT = 200;
 
   beforeEach(async () => {
-    [deployer, maintainer, alice, bob] = await ethers.getSigners();
+    [deployer, maintainer, alice, bob, dao] = await ethers.getSigners();
 
     // Deploy NFTL token
     const NFTL = await ethers.getContractFactory("MockERC20");
@@ -121,6 +121,61 @@ describe("BalanceManager", function () {
           .connect(maintainer)
           .withdraw(alice.address, WITHDRAW_AMOUNT + 1, nonceForAlice, signatureForAlice),
       ).to.be.revertedWith("wrong signer");
+    });
+
+    it("revert if the withdrawl amount is greater than the deposit amount", async () => {
+      // withdraw
+      let nonceForAlice = await balanceManager.nonce(alice.address);
+      let signatureForAlice = await getSignature(maintainer, alice.address, 1.5 * DEPOSIT_AMOUNT, nonceForAlice);
+
+      await expect(
+        balanceManager
+          .connect(maintainer)
+          .withdraw(alice.address, 1.5 * DEPOSIT_AMOUNT, nonceForAlice, signatureForAlice),
+      ).to.be.revertedWith("withdrawal amount exceeded");
+    });
+  });
+
+  describe("updateMaintainer", function () {
+    it("should be able to update the maintainer address", async () => {
+      expect(await balanceManager.maintainer()).to.equal(maintainer.address);
+
+      // update maintainer address
+      await balanceManager.updateMaintainer(deployer.address);
+
+      expect(await balanceManager.maintainer()).to.equal(deployer.address);
+    });
+
+    it("revert if msg.sender is not a owner", async () => {
+      // update maintainer address
+      await expect(balanceManager.connect(alice).updateMaintainer(deployer.address)).to.be.reverted;
+    });
+  });
+
+  describe("withdrawByDAO", function () {
+    beforeEach(async () => {
+      // deposit
+      await nftl.connect(alice).approve(balanceManager.address, DEPOSIT_AMOUNT);
+      await balanceManager.connect(alice).deposit(DEPOSIT_AMOUNT);
+
+      await nftl.connect(bob).approve(balanceManager.address, DEPOSIT_AMOUNT);
+      await balanceManager.connect(bob).deposit(DEPOSIT_AMOUNT);
+    });
+
+    it("should be able to withdraw NFTL tokens", async () => {
+      expect(await nftl.balanceOf(balanceManager.address)).to.equal(2 * DEPOSIT_AMOUNT);
+      expect(await nftl.balanceOf(dao.address)).to.equal(0);
+
+      // withdraw NFTL
+      await balanceManager.withdrawByDAO(dao.address, WITHDRAW_AMOUNT);
+
+      expect(await nftl.balanceOf(balanceManager.address)).to.equal(2 * DEPOSIT_AMOUNT - WITHDRAW_AMOUNT);
+      expect(await nftl.balanceOf(dao.address)).to.equal(WITHDRAW_AMOUNT);
+    });
+
+    it("revert if msg.sender is not a owner", async () => {
+      // update maintainer address
+      await expect(balanceManager.connect(alice).withdrawByDAO(dao.address, WITHDRAW_AMOUNT)).to.be.reverted;
     });
   });
 });
