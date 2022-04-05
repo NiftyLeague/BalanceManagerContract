@@ -56,21 +56,9 @@ describe("BalanceManager", function () {
       // withdraw
       let nonceForAlice = await balanceManager.nonce(alice.address);
       let signatureForAlice = await getSignature(maintainer, alice.address, WITHDRAW_AMOUNT, nonceForAlice);
-      await balanceManager
-        .connect(maintainer)
-        .withdraw(alice.address, WITHDRAW_AMOUNT, nonceForAlice, signatureForAlice);
+      await balanceManager.connect(alice).withdraw(WITHDRAW_AMOUNT, nonceForAlice, signatureForAlice);
 
       expect(await nftl.balanceOf(alice.address)).to.equal(INIT_BALANCE - DEPOSIT_AMOUNT + WITHDRAW_AMOUNT);
-    });
-
-    it("revert if msg.sender is not a maintainer", async () => {
-      // withdraw
-      let nonceForAlice = await balanceManager.nonce(alice.address);
-      let signatureForAlice = await getSignature(maintainer, alice.address, WITHDRAW_AMOUNT, nonceForAlice);
-
-      await expect(
-        balanceManager.connect(alice).withdraw(alice.address, WITHDRAW_AMOUNT, nonceForAlice, signatureForAlice),
-      ).to.be.revertedWith("only maintainer");
     });
 
     it("revert if the nonce is invalid", async () => {
@@ -79,9 +67,7 @@ describe("BalanceManager", function () {
       let signatureForAlice = await getSignature(maintainer, alice.address, WITHDRAW_AMOUNT, nonceForAlice + 1);
 
       await expect(
-        balanceManager
-          .connect(maintainer)
-          .withdraw(alice.address, WITHDRAW_AMOUNT, nonceForAlice + 1, signatureForAlice),
+        balanceManager.connect(alice).withdraw(WITHDRAW_AMOUNT, nonceForAlice + 1, signatureForAlice),
       ).to.be.revertedWith("mismatched nonce");
     });
 
@@ -89,15 +75,11 @@ describe("BalanceManager", function () {
       // withdraw
       let nonceForAlice = await balanceManager.nonce(alice.address);
       let signatureForAlice = await getSignature(maintainer, alice.address, WITHDRAW_AMOUNT, nonceForAlice);
-      await balanceManager
-        .connect(maintainer)
-        .withdraw(alice.address, WITHDRAW_AMOUNT, nonceForAlice, signatureForAlice);
+      await balanceManager.connect(alice).withdraw(WITHDRAW_AMOUNT, nonceForAlice, signatureForAlice);
 
       // witdraw again with the same signature
       await expect(
-        balanceManager
-          .connect(maintainer)
-          .withdraw(alice.address, WITHDRAW_AMOUNT, nonceForAlice + 1, signatureForAlice),
+        balanceManager.connect(alice).withdraw(WITHDRAW_AMOUNT, nonceForAlice + 1, signatureForAlice),
       ).to.be.revertedWith("used signature");
     });
 
@@ -107,7 +89,7 @@ describe("BalanceManager", function () {
       let signatureForAlice = await getSignature(maintainer, alice.address, WITHDRAW_AMOUNT, nonceForAlice);
 
       await expect(
-        balanceManager.connect(maintainer).withdraw(bob.address, WITHDRAW_AMOUNT, nonceForAlice, signatureForAlice),
+        balanceManager.connect(bob).withdraw(WITHDRAW_AMOUNT, nonceForAlice, signatureForAlice),
       ).to.be.revertedWith("wrong signer");
     });
 
@@ -117,9 +99,7 @@ describe("BalanceManager", function () {
       let signatureForAlice = await getSignature(maintainer, alice.address, WITHDRAW_AMOUNT, nonceForAlice);
 
       await expect(
-        balanceManager
-          .connect(maintainer)
-          .withdraw(alice.address, WITHDRAW_AMOUNT + 1, nonceForAlice, signatureForAlice),
+        balanceManager.connect(alice).withdraw(WITHDRAW_AMOUNT + 1, nonceForAlice, signatureForAlice),
       ).to.be.revertedWith("wrong signer");
     });
 
@@ -129,9 +109,7 @@ describe("BalanceManager", function () {
       let signatureForAlice = await getSignature(maintainer, alice.address, 1.5 * DEPOSIT_AMOUNT, nonceForAlice);
 
       await expect(
-        balanceManager
-          .connect(maintainer)
-          .withdraw(alice.address, 1.5 * DEPOSIT_AMOUNT, nonceForAlice, signatureForAlice),
+        balanceManager.connect(alice).withdraw(1.5 * DEPOSIT_AMOUNT, nonceForAlice, signatureForAlice),
       ).to.be.revertedWith("withdrawal amount exceeded");
     });
   });
