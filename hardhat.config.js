@@ -59,16 +59,16 @@ module.exports = {
       url: 'http://localhost:8545',
     },
     mainnet: {
-      url: nodeUrl("polygon-mainnet"),
-      gasPrice: 40000000000,
-      timeout: 50000,
-      accounts: accounts
+      url: `https://mainnet.infura.io/v3/${process.env.INFURA_PROJECT_ID}`,
+      accounts: accounts,
     },
-    mumbai: {
-      url: nodeUrl("polygon-mumbai"),
-      gasPrice: 40000000000,
-      timeout: 50000,
-      accounts: accounts
+    ropsten: {
+      url: `https://ropsten.infura.io/v3/${process.env.INFURA_PROJECT_ID}`,
+      accounts: accounts,
+    },
+    rinkeby: {
+      url: `https://rinkeby.infura.io/v3/${process.env.INFURA_PROJECT_ID}`,
+      accounts: accounts,
     },
     coverage: {
       url: "http://127.0.0.1:8555",
