@@ -33,11 +33,6 @@ contract BalanceManager is Initializable, OwnableUpgradeable {
   /// @dev Maintainer address
   address public maintainer;
 
-  modifier onlyMaintainer() {
-    require(msg.sender == maintainer, "only maintainer");
-    _;
-  }
-
   function initialize(address _nftl, address _maintainer) public initializer {
     __Ownable_init();
 
@@ -57,39 +52,36 @@ contract BalanceManager is Initializable, OwnableUpgradeable {
   }
 
   /**
-   * @notice Withdraw NFTL tokens from the contract
-   * @dev Only maintainer
-   * @param _beneficiary Beneficiary address
+   * @notice Withdraw NFTL tokens from the contract to the user
    * @param _amount NFTL token amount to withdraw
    * @param _nonce Nonce
    * @param _signature Signature
    */
   function withdraw(
-    address _beneficiary,
     uint256 _amount,
     uint256 _nonce,
     bytes memory _signature
-  ) external onlyMaintainer {
+  ) external {
     // check if the nonce is matched
-    require(nonce[_beneficiary] == _nonce, "mismatched nonce");
-    nonce[_beneficiary] += 1;
+    require(nonce[msg.sender] == _nonce, "mismatched nonce");
+    nonce[msg.sender] += 1;
 
     // check if the signature was already used
     require(!signatures[_signature], "used signature");
     signatures[_signature] = true;
 
     // check the signer
-    bytes32 data = keccak256(abi.encodePacked(_beneficiary, _amount, _nonce));
+    bytes32 data = keccak256(abi.encodePacked(msg.sender, _amount, _nonce));
     require(data.toEthSignedMessageHash().recover(_signature) == maintainer, "wrong signer");
 
     // check if total withdrawal amount is not greater than total deposit one
-    userWithdrawals[_beneficiary] += _amount;
-    require(userWithdrawals[_beneficiary] <= userDeposits[_beneficiary], "withdrawal amount exceeded");
+    userWithdrawals[msg.sender] += _amount;
+    require(userWithdrawals[msg.sender] <= userDeposits[msg.sender], "withdrawal amount exceeded");
 
     // transfer tokens to the user
-    IERC20Upgradeable(nftl).safeTransfer(_beneficiary, _amount);
+    IERC20Upgradeable(nftl).safeTransfer(msg.sender, _amount);
 
-    emit NFTLWithdrawn(maintainer, _beneficiary, _amount);
+    emit NFTLWithdrawn(msg.sender, msg.sender, _amount);
   }
 
   /**
