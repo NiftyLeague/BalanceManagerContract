@@ -102,16 +102,6 @@ describe("BalanceManager", function () {
         balanceManager.connect(alice).withdraw(WITHDRAW_AMOUNT + 1, nonceForAlice, signatureForAlice),
       ).to.be.revertedWith("wrong signer");
     });
-
-    it("revert if the withdrawl amount is greater than the deposit amount", async () => {
-      // withdraw
-      let nonceForAlice = await balanceManager.nonce(alice.address);
-      let signatureForAlice = await getSignature(maintainer, alice.address, 1.5 * DEPOSIT_AMOUNT, nonceForAlice);
-
-      await expect(
-        balanceManager.connect(alice).withdraw(1.5 * DEPOSIT_AMOUNT, nonceForAlice, signatureForAlice),
-      ).to.be.revertedWith("withdrawal amount exceeded");
-    });
   });
 
   describe("updateMaintainer", function () {

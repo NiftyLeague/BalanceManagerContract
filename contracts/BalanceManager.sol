@@ -74,9 +74,8 @@ contract BalanceManager is Initializable, OwnableUpgradeable {
     bytes32 data = keccak256(abi.encodePacked(msg.sender, _amount, _nonce));
     require(data.toEthSignedMessageHash().recover(_signature) == maintainer, "wrong signer");
 
-    // check if total withdrawal amount is not greater than total deposit one
+    // update the withdrawal amount
     userWithdrawals[msg.sender] += _amount;
-    require(userWithdrawals[msg.sender] <= userDeposits[msg.sender], "withdrawal amount exceeded");
 
     // transfer tokens to the user
     IERC20Upgradeable(nftl).safeTransfer(msg.sender, _amount);
