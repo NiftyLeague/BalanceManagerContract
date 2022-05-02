@@ -11,6 +11,7 @@
     "coverage": "npx hardhat coverage --network hardhat",
     "deploy:hardhat": "hardhat deploy --deploy-scripts ./deploy/hardhat",
     "deploy:remote": "hardhat deploy --deploy-scripts ./deploy/remote --network",
+    "deploy:ledger": "hardhat deploy --deploy-scripts ./deploy/ledger --network",
     "test": "npx hardhat test",
     "prepare": "husky install"
   },
@@ -48,6 +49,7 @@
   "dependencies": {
     "@ethersproject/bignumber": "^5.3.0",
     "@nomiclabs/hardhat-ethers": "npm:hardhat-deploy-ethers",
-    "dotenv": "^10.0.0"
+    "dotenv": "^10.0.0",
+    "eth-provider": "^0.11.0"
   }
 }
