@@ -10,7 +10,7 @@
     "compile": "npx hardhat compile",
     "coverage": "npx hardhat coverage --network hardhat",
     "deploy:hardhat": "hardhat deploy --deploy-scripts ./deploy/hardhat",
-    "deploy:remote": "hardhat deploy --network",
+    "deploy:remote": "hardhat deploy --deploy-scripts ./deploy/remote --network",
     "test": "npx hardhat test",
     "prepare": "husky install"
   },

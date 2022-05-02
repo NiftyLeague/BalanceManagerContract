@@ -95,6 +95,9 @@ module.exports = {
     timeout: 50000,
   },
   namedAccounts: {
+    deployer: {
+      default: 0
+    }
   },
   etherscan: {
     apiKey: process.env.ETHERSCAN_API_KEY
