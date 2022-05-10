@@ -55,23 +55,28 @@ contract BalanceManager is Initializable, OwnableUpgradeable {
    * @notice Withdraw NFTL tokens from the contract to the user
    * @param _amount NFTL token amount to withdraw
    * @param _nonce Nonce
+   * @param _expireAt Expiration time
    * @param _signature Signature
    */
   function withdraw(
     uint256 _amount,
     uint256 _nonce,
+    uint256 _expireAt,
     bytes memory _signature
   ) external {
     // check if the nonce is matched
     require(nonce[msg.sender] == _nonce, "mismatched nonce");
     nonce[msg.sender] += 1;
 
+    // check if the request is not expired
+    require(block.timestamp <= _expireAt, "expired withdrawal request");
+
     // check if the signature was already used
     require(!signatures[_signature], "used signature");
     signatures[_signature] = true;
 
     // check the signer
-    bytes32 data = keccak256(abi.encodePacked(msg.sender, _amount, _nonce));
+    bytes32 data = keccak256(abi.encodePacked(msg.sender, _amount, _nonce, _expireAt));
     require(data.toEthSignedMessageHash().recover(_signature) == maintainer, "wrong signer");
 
     // update the withdrawal amount
