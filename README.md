@@ -1,1 +1,1 @@
-## Nifty League Smart Contract
+## BalanceManager
